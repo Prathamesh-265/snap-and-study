@@ -31,7 +31,7 @@ def _to_contents(history):
 def _generate(contents):
     last_error = None
     for model in MODELS:
-        for attempt in range(3):
+        for attempt in range(4):
             try:
                 response = _client().models.generate_content(
                     model=model,
@@ -46,7 +46,7 @@ def _generate(contents):
                     raise
                 if code == 429 and "PerDay" in str(e):
                     break  # daily quota for this model is gone: waiting won't help, try the next model
-                time.sleep(2**attempt)  # 503 / per-minute limit: wait 1s, 2s, 4s and retry
+                time.sleep(2**attempt)  # 503 / per-minute limit: wait 1s, 2s, 4s, 8s and retry
     raise last_error
 
 

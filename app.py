@@ -132,6 +132,8 @@ def chat():
                 history.pop()
                 if "RESOURCE_EXHAUSTED" in str(e):
                     st.error("Today's free Gemini quota is used up for every model in MODELS. It resets at midnight Pacific time (about 12:30 PM in India).")
+                elif getattr(e, "code", None) == 503 or "503 UNAVAILABLE" in str(e):
+                    st.error("Gemini is temporarily busy. Please wait a minute and try again.")
                 else:
                     st.error(f"Gemini didn't answer. Try again in a moment. If it keeps failing, check GEMINI_API_KEY. ({e})")
                 st.stop()
