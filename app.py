@@ -147,8 +147,17 @@ def chat():
                 try:
                     receipt = tool["send"](st.session_state.destination, summarize(history))
                     if tool_name == "whatsapp":
-                        st.success("Your study note was sent to WhatsApp.")
-                        st.caption(f"Sent to WhatsApp · {receipt['sid']}")
+                        status = receipt["status"]
+                        if status in {"queued", "accepted", "scheduled"}:
+                            st.info(
+                                "Twilio accepted the message, but delivery is still pending. "
+                                "For the Sandbox, send its join phrase from this WhatsApp number first."
+                            )
+                        elif status == "delivered":
+                            st.success("Your study note was delivered to WhatsApp.")
+                        else:
+                            st.warning(f"WhatsApp delivery status: {status}")
+                        st.caption(f"WhatsApp message · {receipt['sid']} · {status}")
                     else:
                         st.toast(f"Sent to {st.session_state.destination}", icon="✅")
                 except Exception as e:
