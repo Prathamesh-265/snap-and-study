@@ -28,10 +28,10 @@ def _to_contents(history):
     return contents
 
 
-def _generate(contents):
+def _generate(contents, max_attempts=4):
     last_error = None
     for model in MODELS:
-        for attempt in range(4):
+        for attempt in range(max_attempts):
             try:
                 response = _client().models.generate_content(
                     model=model,
@@ -60,4 +60,5 @@ def summarize(history):
     closing = types.Content(
         role="user", parts=[types.Part.from_text(text=prompts.SUMMARY_PROMPT)]
     )
-    return _generate(_to_contents(history) + [closing])
+    # Sending should fail quickly instead of waiting through all chat retries.
+    return _generate(_to_contents(history) + [closing], max_attempts=1)

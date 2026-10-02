@@ -11,7 +11,7 @@ def send_email(to_address, text):
     message["From"] = st.secrets["GMAIL_ADDRESS"]
     message["To"] = to_address
 
-    with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
+    with smtplib.SMTP_SSL("smtp.gmail.com", 465, timeout=10) as server:
         server.login(st.secrets["GMAIL_ADDRESS"], st.secrets["GMAIL_APP_PASSWORD"])
         server.send_message(message)
 
@@ -20,7 +20,16 @@ def send_telegram(chat_id, text):
     from telegram import Bot
 
     bot = Bot(token=st.secrets["TELEGRAM_BOT_TOKEN"])
-    asyncio.run(bot.send_message(chat_id=chat_id, text=text))
+    asyncio.run(
+        bot.send_message(
+            chat_id=chat_id,
+            text=text,
+            read_timeout=10,
+            write_timeout=10,
+            connect_timeout=10,
+            pool_timeout=10,
+        )
+    )
 
 def _whatsapp(number):
     """Twilio needs the 'whatsapp:' prefix on both From and To."""
@@ -30,8 +39,13 @@ def _whatsapp(number):
 
 def send_whatsapp(number, text):
     from twilio.rest import Client
+    from twilio.http.http_client import TwilioHttpClient
 
-    client = Client(st.secrets["TWILIO_ACCOUNT_SID"], st.secrets["TWILIO_AUTH_TOKEN"])
+    client = Client(
+        st.secrets["TWILIO_ACCOUNT_SID"],
+        st.secrets["TWILIO_AUTH_TOKEN"],
+        http_client=TwilioHttpClient(timeout=10),
+    )
     message = client.messages.create(
         from_=_whatsapp(st.secrets["TWILIO_WHATSAPP_FROM"]),
         to=_whatsapp(number),
